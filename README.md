@@ -1,6 +1,5 @@
 Prerequisites
-Before you begin, ensure you have Node.js installed on your machine. You can verify this by running node -v in your terminal which should display the version of Node.js installed.
-
+Before you begin, ensure you have Node.js installed on your machine. and you should also have express downloaded.
 
 
 npm install
@@ -28,3 +27,4 @@ Student Id: 101243979
 
 youtube link: https://youtu.be/QMtPjreRZTk
 
+--Modified the git because the files got updated with the wrong directory,
