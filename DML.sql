@@ -44,3 +44,27 @@ INSERT INTO UserProfiles (username, password, height, weight, goal1, goal2, goal
     ('jane_smith', 'abc123', 165, 60, 'Build muscle', 'Improve flexibility', 'Increase endurance'),
     ('sam_wilson', 'sammy456', 175, 70, 'Train for marathon', 'Improve cardiovascular health', 'Stay active'),
     ('emily_jones', 'password456', 160, 55, 'Gain strength', 'Improve posture', 'Reduce stress');
+
+--Upload Schedule
+INSERT INTO schedules (day_of_week, time_slot, trainer_id, member_id) VALUES
+('Monday', '09:00:00', 1, 1),
+('Tuesday', '10:00:00', 2, 2),
+('Wednesday', '11:00:00', 1, 3),
+('Thursday', '12:00:00', 3, 4),
+('Friday', '13:00:00', 2, 2);
+
+
+-- upload achievements
+INSERT INTO Achievements (user_id, achievement) VALUES
+(1, 'Completed 100 Yoga Sessions'),
+(2, 'Ran a Total of 500 Miles'),
+(3, '5 Years Membership Anniversary'),
+(4, 'Participated in 10 Competitions'),
+(1, 'Lost 20 Pounds');
+
+--upload trainers 
+INSERT INTO trainers (username, loginpass, name) VALUES
+('johndoe', 'password1', 'John Doe'),
+('janedoe', 'password2', 'Jane Doe'),
+('samsmith', 'password3', 'Sam Smith');
+
