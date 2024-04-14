@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trainer Page</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            padding-top: 20px;
+            height: 100%;
+        }
+        #sign-out {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #main {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+        }
+        .rectangle {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            margin: 0 10px;
+        }
+        .time-management {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+        .popup-container {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1050;
+            width: 300px;
+        }
+        .popup-container input,
+        .popup-container select,
+        .popup-container button {
+            margin-top: 10px;
+        }
+        .schedule th {
+            background-color: #007bff;
+            color: white;
+        }
+        .schedule td, .schedule th {
+            text-align: center;
+            padding: 8px;
+        }
+        .popup-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff; /* Ensure background is white for better readability */
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-width: 400px; /* Adjust the maximum width as needed */
+            color: black; /* Set text color to black */
+        }
+
+        .popup-container p {
+            margin-bottom: 10px;
+        }
+
+        .popup-container ul {
+            margin-top: 0;
+            padding-left: 20px;
+        }
+
+        .popup-container li {
+            list-style-type: disc;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="popup-container" id="user-info-popup" style="display: none;">
+    <button onclick="closeUserInfoPopup()" class="btn btn-danger" style="position: absolute; right: 10px; top: 10px;">X</button>
+    <h4>User Information</h4>
+    <p><strong>Username:</strong> <span id="popup-username"></span></p>
+    <p><strong>Height:</strong> <span id="popup-height"></span> cm</p>
+    <p><strong>Weight:</strong> <span id="popup-weight"></span> kg</p>
+    <p><strong>Goal 1:</strong> <span id="popup-goal1"></span></p>
+    <p><strong>Goal 2:</strong> <span id="popup-goal2"></span></p>
+    <p><strong>Goal 3:</strong> <span id="popup-goal3"></span></p>
+</div>
+
+<div class="container">
+    <button id="sign-out">Sign Out</button>
+    <h1>Hello, <span id="trainer-name">Trainer</span></h1>
+
+    <div id="main">
+        <div class="rectangle" id="members-section">
+            <input type="text" id="member-search" class="form-control" placeholder="Search for a member...">
+            <button id="search-button"><i class="fa fa-search"></i></button>
+            <ul id="member-list" class="list-group mt-3"></ul>
+        </div>
+
+        <div class="rectangle" id="calendar-section">
+            <table class="table schedule">
+                <thead>
+                <tr>
+                    <th id ="Monday">Monday</th>
+                    <th id="Tuesday">Tuesday</th>
+                    <th id="Wednesday">Wednesday</th>
+                    <th id="Thursday">Thursday</th>
+                    <th id="Friday">Friday</th>
+                    <th id="Saturday">Saturday</th>
+                    <th id="Sunday">Sunday</th>
+                </tr>
+                </thead>
+                <tbody id="schedule-body"></tbody>
+            </table>
+            <div class="time-management">
+                <button id="add-time" class="btn btn-primary">+</button>
+                <button id="remove-time" class="btn btn-secondary">-</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-container" id="popup">
+        <button onclick="closePopup()" class="btn btn-sm btn-danger">Close</button>
+        <h2>Add Session</h2>
+        <select id="day" class="form-control">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+        </select>
+        <input type="time" id="start-time" class="form-control">
+        <button id="add-session" onclick="addSession()" class="btn btn-primary">Add Session</button>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch trainer's name based on trainerId from session storage
+        fetchTrainerName();
+        });
+
+    async function fetchTrainerName() {
+        try {
+             // Retrieve trainerId from session storage
+              const trainerId = sessionStorage.getItem('trainerId');
+
+              // Fetch trainer's name from the server using the trainerId
+              const response = await fetch(`/api/trainer/${trainerId}`);
+              if (!response.ok) throw new Error('Failed to fetch trainer name');
+              const data = await response.json();
+
+              // Update the trainer name in the HTML
+              const trainerNameSpan = document.getElementById('trainer-name');
+              trainerNameSpan.textContent = data.trainerName; // Assuming the JSON response contains a property named 'trainerName'
+            } catch (error) {
+                console.error('Failed to load trainer name:', error);
+            }
+        }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchMembers();
+        fetchSchedule(); // Load schedule when the page loads
+
+            document.getElementById('add-time').addEventListener('click', function() {
+                document.getElementById('popup').style.display = 'block';
+            });
+
+            document.getElementById('add-session').addEventListener('click', function() {
+                this.textContent = "Adding...";
+                this.disabled = true;
+                addSession();
+            });
+        });
+
+        async function fetchMembers() {
+    try {
+        const searchValue = document.getElementById('member-search').value; // Get the search input value
+        const response = await fetch(`/api/members?startsWith=${searchValue}`); // Include the query parameter for filtering
+        if (!response.ok) throw new Error('Failed to fetch');
+        const members = await response.json();
+        updateMemberList(members);
+    } catch (error) {
+        console.error('Failed to load members:', error);
+    }
+}
+
+
+       async function fetchSchedule() {
+            try {
+                const trainerId = sessionStorage.getItem('trainerId');
+
+
+        // Now that you have the trainerId, you can make a fetch request to get the schedule
+                const response = await fetch(`/api/schedule/trainer/${trainerId}`);
+                if (!response.ok) throw new Error('Failed to fetch schedule');
+                const schedule = await response.json();
+                displaySchedule(schedule); // Assuming you have a function named displaySchedule to render the schedule
+             } catch (error) {
+                console.error('Failed to load schedule:', error);
+        }
+}
+
+        function updateMemberList(members) {
+            const memberList = document.getElementById('member-list');
+            memberList.innerHTML = '';
+            members.forEach(member => {
+                const listItem = document.createElement('li');
+                listItem.textContent = member.username;
+                memberList.appendChild(listItem);
+            });
+        }
+
+        function displaySchedule(schedule) {
+    const scheduleBody = document.getElementById('schedule-body');
+    if (!scheduleBody) {
+        console.error('Schedule body element not found.');
+        return;
+    }
+
+    schedule.forEach(entry => {
+        const { day_of_week, time_slot, id, trainer_id, member_id } = entry;
+        const cell = document.getElementById(day_of_week);
+        if (!cell) {
+            console.error(`Cell for ${day_of_week} not found.`);
+            return;
+        }
+
+        const timeEntry = document.createElement('div');
+        timeEntry.textContent = time_slot;
+
+        // Append other properties to the timeEntry element if needed
+        // For example:
+        // timeEntry.setAttribute('data-id', id);
+        // timeEntry.setAttribute('data-trainer-id', trainer_id);
+        // timeEntry.setAttribute('data-member-id', member_id);
+
+        // Append the timeEntry to the corresponding cell in the schedule table
+        cell.appendChild(timeEntry);
+    });
+}
+function addSession() {
+    const day = document.getElementById('day').value;
+    const startTime = document.getElementById('start-time').value;
+    const trainerId = sessionStorage.getItem('trainerId');
+
+    const sessionData = {
+        dayOfWeek: day,
+        timeSlot: startTime + ':00', // Ensure formatting matches your database or display needs
+        trainerId: trainerId,
+        memberId: null // Assuming this is handled elsewhere if needed
+    };
+
+    fetch('/api/schedule/add-session', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sessionData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateScheduleView(day, startTime); // Update UI function
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('add-session').textContent = "Add Session";
+            document.getElementById('add-session').disabled = false;
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding session:', error);
+        alert('Failed to add session: ' + error);
+    });
+}
+
+    function updateScheduleView(dayOfWeek, timeSlot) {
+        const dayColumn = document.getElementById(dayOfWeek);
+        const newEntry = document.createElement('div');
+        newEntry.textContent = timeSlot;
+        dayColumn.appendChild(newEntry);
+    }
+
+
+
+
+
+document.getElementById('remove-time').addEventListener('click', function() {
+    const selectedDay = prompt("Enter the day to delete (e.g., 'Monday'):");
+    if (!selectedDay) return; // Cancelled or empty input
+
+    const selectedTimeSlot = prompt("Enter the time slot to delete (e.g., '9:00 AM'):");
+    if (!selectedTimeSlot) return; // Cancelled or empty input
+
+    const confirmDeletion = confirm(`Are you sure you want to delete the time slot ${selectedTimeSlot} on ${selectedDay}?`);
+    if (!confirmDeletion) return; // Cancelled deletion
+
+    removeTimeSlot(selectedDay, selectedTimeSlot);
+});
+
+async function removeTimeSlot(dayOfWeek, timeSlot) {
+    const response = await fetch('/api/schedule/delete-session', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ dayOfWeek, timeSlot })
+    });
+    const data = await response.json();
+
+    if (data.success) {
+        const dayColumn = document.getElementById(dayOfWeek);
+        const entries = dayColumn.querySelectorAll('div');
+        entries.forEach(entry => {
+            if (entry.textContent.includes(timeSlot)) { // Check if the entry's text includes the time slot
+                entry.remove();
+            }
+        });
+        alert('Time slot deleted successfully');
+    } else {
+        alert(data.message);
+    }
+}
+
+function showUserInfoPopup(user) {
+    document.getElementById('popup-username').textContent = user.username;
+    document.getElementById('popup-height').textContent = user.height;
+    document.getElementById('popup-weight').textContent = user.weight;
+    document.getElementById('popup-goal1').textContent = user.goal1 || 'Not set';
+    document.getElementById('popup-goal2').textContent = user.goal2 || 'Not set';
+    document.getElementById('popup-goal3').textContent = user.goal3 || 'Not set';
+    document.getElementById('user-info-popup').style.display = 'block';
+}
+
+function closeUserInfoPopup() {
+    document.getElementById('user-info-popup').style.display = 'none';
+}
+
+document.getElementById('search-button').addEventListener('click', function() {
+    const username = document.getElementById('member-search').value;
+    fetch(`/api/members?username=${username}`) // Adjust URL as needed
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch user details');
+            return response.json();
+        })
+        .then(users => {
+            if (users.length > 0) {
+                showUserInfoPopup(users[0]); // Assuming the search might return multiple results, we take the first
+            } else {
+                alert('No user found with that username.');
+                closeUserInfoPopup();
+            }
+        })
+        .catch(error => {
+            console.error('Failed to load user details:', error);
+            alert('Failed to load user details. Please try again.');
+        });
+});
+
+document.getElementById('sign-out').addEventListener('click', function() {
+        // Optionally clear any session data if necessary
+        sessionStorage.clear();
+        // Redirect to the login page
+        window.location.href = '/trainer-login';
+    });
+
+
+    </script>
+</body>
+</html>

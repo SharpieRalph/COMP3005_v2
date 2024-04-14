@@ -1,0 +1,72 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+    height: calc(100vh - 40px); /* Full height minus padding */
+    box-sizing: border-box;
+}
+
+.search-container {
+    isplay: flex;
+    align-items: center; /* Align items vertically */
+}
+
+#member-search {
+    flex: 1; /* Take remaining space */
+    margin-right: 5px; /* Add some spacing */
+}
+
+.rectangle {
+    flex: 1;
+    margin: 0 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative; /* Needed for absolute positioning inside */
+}
+
+.time-management {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+button {
+    padding: 10px;
+    margin-left: 5px; /* Adds space between buttons */
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.schedule {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px; /* Ensures space for buttons */
+}
+
+.schedule th, .schedule td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}

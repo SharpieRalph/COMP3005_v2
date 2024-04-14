@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Fitness Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Group Fitness Management</h1>
+
+    <!-- Form for Creating and Updating Group Fitness Classes -->
+    <form id="groupFitnessForm" onsubmit="submitGroupFitnessForm(); return false;" class="mb-3">
+        <div class="mb-3">
+            <label for="groupFitnessID" class="form-label">Class ID (for update/delete):</label>
+            <input type="text" id="groupFitnessID" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="className" class="form-label">Class Name:</label>
+            <input type="text" id="className" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="startTime" class="form-label">Start Time:</label>
+            <input type="datetime-local" id="startTime" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="endTime" class="form-label">End Time:</label>
+            <input type="datetime-local" id="endTime" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="roomID" class="form-label">Room ID:</label>
+            <input type="number" id="roomID" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Class</button>
+    </form>
+
+    <!-- Button for Deleting a Class -->
+    <button onclick="deleteClass()" class="btn btn-danger mb-3">Delete Class</button>
+
+    <!-- Table to Display Scheduled Classes -->
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Class ID</th>
+            <th>Class Name</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Room ID</th>
+        </tr>
+        </thead>
+        <tbody id="classesList">
+        <!-- Data will be loaded here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function fillForm(data) {
+        document.getElementById('groupFitnessID').value = data.groupfitnessid;
+        document.getElementById('className').value = data.classname;
+        document.getElementById('startTime').value = data.starttime.slice(0, 16);  // Ensure datetime-local format
+        document.getElementById('endTime').value = data.endtime.slice(0, 16);      // Ensure datetime-local format
+        document.getElementById('roomID').value = data.roomid;
+    }
+
+    function submitGroupFitnessForm() {
+        const id = document.getElementById('groupFitnessID').value;
+        const className = document.getElementById('className').value;
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        const roomID = document.getElementById('roomID').value;
+
+        const url = id ? `/api/groupfitness/${id}` : '/api/groupfitness';
+        const method = id ? 'put' : 'post';
+        const data = {
+            className, startTime, endTime, roomID
+        };
+
+        axios({
+            method: method,
+            url: url,
+            data: data
+        })
+        .then(response => {
+            alert('Success: ' + JSON.stringify(response.data));
+            loadClasses(); // Reload classes after update
+            document.getElementById('groupFitnessForm').reset(); // Clear form
+        })
+        .catch(error => alert('Error: ' + (error.response?.data.error || error.message)));
+    }
+
+    function deleteClass() {
+        const id = document.getElementById('groupFitnessID').value;
+        if (!id) {
+            alert('Please enter a Class ID to delete.');
+            return;
+        }
+        axios.delete(`/api/groupfitness/${id}`)
+        .then(response => {
+            alert('Success: ' + response.data.message);
+            loadClasses(); // Reload classes after deletion
+            document.getElementById('groupFitnessForm').reset(); // Clear form fields
+        })
+        .catch(error => alert('Error: ' + (error.response?.data.error || error.message)));
+    }
+
+    function loadClasses() {
+        axios.get('/api/groupfitness')
+        .then(response => {
+            const classesList = document.getElementById('classesList');
+            classesList.innerHTML = ''; // Clear existing entries
+            response.data.forEach(cls => {
+                const row = `<tr onclick="fillForm({
+                    groupfitnessid: '${cls.groupfitnessid}',
+                    classname: '${cls.classname}',
+                    starttime: '${cls.starttime}',
+                    endtime: '${cls.endtime}',
+                    roomid: '${cls.roomid}'
+                })">
+                    <td>${cls.groupfitnessid}</td>
+                    <td>${cls.classname}</td>
+                    <td>${cls.starttime}</td>
+                    <td>${cls.endtime}</td>
+                    <td>${cls.roomid}</td>
+                </tr>`;
+                classesList.innerHTML += row;
+            });
+        })
+        .catch(error => {
+            console.error('Error loading classes:', error);
+            alert('Error: Could not load classes');
+        });
+    }
+
+    // Load classes on page load
+    window.onload = loadClasses;
+</script>
+</body>
+</html>

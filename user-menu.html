@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Menu</title>
+    <style>
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+         table {
+            width: 100%; /* Full width of its container */
+            border-collapse: collapse; /* Ensures borders between cells are merged */
+            margin-top: 20px; /* Adds some space above the table */
+        }
+
+        th, td {
+            border: 1px solid #ddd; /* Light grey border for readability */
+            padding: 8px; /* Padding inside cells for text alignment */
+            text-align: left; /* Aligns text to the left of each cell */
+        }
+
+        th {
+            background-color: #f2f2f2; /* Light grey background for header cells */
+            color: #333; /* Darker text color for contrast */
+        }
+
+
+        tr:nth-child(even) {background-color: #f9f9f9;}
+        tr:hover {background-color: #ddd;}
+
+        /* Modal Content/Box */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%; /* Adjust based on screen size */
+        }
+
+        /* Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="menu">
+    <!-- Profile Menu Item -->
+    <div class="menu-item" id="profile">
+        <h2>User Profile</h2>
+        <div class="profile-info">
+            <div>
+                <strong>Username:</strong>
+                <span id="username-display"></span>
+            </div>
+            <div>
+                <strong>Password:</strong>
+                <span id="password-display"></span>
+                <input type="password" id="password-input" style="display: none;">
+            </div>
+            <div>
+                <strong>Height:</strong>
+                <span id="height-display"></span> cm
+                <input type="text" id="height-input" style="display: none;">
+            </div>
+            <div>
+                <strong>Weight:</strong>
+                <span id="weight-display"></span> kg
+                <input type="text" id="weight-input" style="display: none;">
+            </div>
+            <div>
+                <strong>Goal 1:</strong>
+                <span id="goal1-display"></span>
+                <input type="text" id="goal1-input" style="display: none;">
+            </div>
+            <div>
+                <strong>Goal 2:</strong>
+                <span id="goal2-display"></span>
+                <input type="text" id="goal2-input" style="display: none;">
+            </div>
+            <div>
+                <strong>Goal 3:</strong>
+                <span id="goal3-display"></span>
+                <input type="text" id="goal3-input" style="display: none;">
+            </div>
+        </div>
+        <!-- Edit and Save Buttons -->
+        <div>
+            <button id="edit-profile-btn" onclick="toggleEditProfile()">Edit</button>
+            <button id="save-profile-btn" onclick="saveProfile()" style="display: none;">Save</button>
+        </div>
+    </div>
+    <!-- Other Menu Items -->
+    <div class="menu-item" id="dashboard">
+
+        <h2>Dashboard</h2>
+        <div id="achievements">
+            <!-- Existing Achievements -->
+
+            <!-- Add Achievement Button -->
+
+        </div>
+        <!-- Add Achievement Button -->
+        <button id="add-achievement-btn">+</button>
+    </div>
+</div>
+<div class="menu-item" id="schedule">
+    <h2>Schedule Management</h2>
+    <div id="personal-training">
+        <h3>Personal Training Schedule</h3>
+        <!-- Personal Training Schedule -->
+    </div>
+    <div id="group-fitness">
+        <h3>Group Fitness Schedule</h3>
+        <table id="registered-sessions">
+            <h4> Registered Sessions </h4>
+            <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Room ID</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Sessions will be filled here by JavaScript -->
+            </tbody>
+        </table>
+
+
+        <table id="non-registered-sessions">
+            <h4> Non Registered Sessions </h4>
+            <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Room ID</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Sessions will be filled here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<div class="content" id="content">
+    <!-- Content will be loaded dynamically here -->
+</div>
+
+<!-- Add Achievement Modal -->
+<div id="add-achievement-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Add Achievement</h2>
+        <input type="text" id="achievement-input" placeholder="Enter your achievement">
+        <button onclick="submitAchievement()">Done</button>
+    </div>
+</div>
+
+<script>
+    // Function to toggle between displaying profile information and input fields for editing
+    function toggleEditProfile() {
+        const displayElements = document.querySelectorAll('.profile-info span');
+        const inputElements = document.querySelectorAll('.profile-info input');
+
+        displayElements.forEach(element => {
+            element.style.display = 'none';
+        });
+
+        inputElements.forEach(element => {
+            element.style.display = 'inline-block';
+        });
+
+        document.getElementById('edit-profile-btn').style.display = 'none';
+        document.getElementById('save-profile-btn').style.display = 'inline-block';
+    }
+
+    // Function to save the changes to the profile
+    function saveProfile() {
+    const userId = sessionStorage.getItem("userId"); // Retrieve userId from sessionStorage
+
+    // Check if userId is available
+    if (userId) {
+        // Fetch the updated profile information
+        const password = document.getElementById("password-input").value;
+        const height = document.getElementById("height-input").value;
+        const weight = document.getElementById("weight-input").value;
+        const goal1 = document.getElementById("goal1-input").value;
+        const goal2 = document.getElementById("goal2-input").value;
+        const goal3 = document.getElementById("goal3-input").value;
+
+        // Prepare the data to send to the server
+        const data = {
+            password: password,
+            height: height,
+            weight: weight,
+            goal1: goal1,
+            goal2: goal2,
+            goal3: goal3
+        };
+
+        // Send a PUT request to update the user profile
+        fetch(`/api/user/profile/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                console.log("Profile updated successfully");
+                // Reload the page to reflect the changes
+                window.location.reload();
+            } else {
+                console.error("Profile update failed:", result.message);
+                // Optionally, show an error message to the user
+            }
+        })
+        .catch(error => {
+            console.error("Error updating profile:", error);
+            // Optionally, show an error message to the user
+        });
+    } else {
+        console.error("User ID not found in sessionStorage");
+        // Optionally, handle the situation where userId is not available
+    }
+}
+
+    // Function to load the profile automatically when the page is loaded
+    window.addEventListener('load', () => {
+        const userId = sessionStorage.getItem('userId');
+        if (userId) {
+            loadProfile(userId);
+            loadAchievements(userId);
+        } else {
+            console.error('User ID not found in sessionStorage');
+        }
+    });
+
+    // Function to load profile information from the server
+    function loadProfile(userId) {
+        fetch(`/api/user/profile/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Display the profile information
+                document.getElementById('username-display').textContent = data.username;
+                document.getElementById('password-display').textContent = data.password;
+                document.getElementById('height-display').textContent = data.height;
+                document.getElementById('weight-display').textContent = data.weight;
+                document.getElementById('goal1-display').textContent = data.goal1;
+                document.getElementById('goal2-display').textContent = data.goal2;
+                document.getElementById('goal3-display').textContent = data.goal3;
+
+                // Set the input field values for editing
+                document.getElementById('password-input').value = data.password;
+                document.getElementById('height-input').value = data.height;
+                document.getElementById('weight-input').value = data.weight;
+                document.getElementById('goal1-input').value = data.goal1;
+                document.getElementById('goal2-input').value = data.goal2;
+                document.getElementById('goal3-input').value = data.goal3;
+            })
+            .catch(error => {
+                console.error('Error loading user profile:', error);
+            });
+    }
+
+    // Get the modal
+    const modal = document.getElementById('add-achievement-modal');
+
+    // Get the button that opens the modal
+    const btn = document.getElementById("add-achievement-btn");
+
+    // Get the <span> element that closes the modal
+    const span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on the button, open the modal
+    btn.onclick = function() {
+      modal.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // Function to submit the achievement
+    function submitAchievement() {
+      const achievement = document.getElementById("achievement-input").value;
+      const userId = sessionStorage.getItem("userId");
+
+      if (userId && achievement) {
+        fetch(`/api/user/achievements/${userId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ achievement: achievement })
+        })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            console.log("Achievement added successfully");
+            modal.style.display = "none"; // Close the modal
+            loadAchievements(userId); // Reload achievements
+          } else {
+            console.error("Failed to add achievement:", result.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error adding achievement:", error);
+        });
+      } else {
+        console.error("User ID or achievement not found");
+      }
+    }
+
+   // Function to load achievements for a specific user
+function loadAchievements(userId) {
+    fetch(`/api/user/achievements/${userId}`)
+        .then(response => response.json())
+        .then(achievements => {
+            const achievementsDiv = document.getElementById('achievements');
+            // Clear existing achievements
+            achievementsDiv.innerHTML = '';
+            // Append each achievement to the achievements div
+            achievements.forEach(achievement => {
+                const achievementElement = document.createElement('div');
+                achievementElement.textContent = achievement.achievement; // Access the achievement property
+                achievementsDiv.appendChild(achievementElement);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading achievements:', error);
+            // Handle errors if any
+        });
+}
+
+// Function to load schedules from the server
+function loadSchedules() {
+    fetch('/api/schedules')
+        .then(response => response.json())
+        .then(data => {
+            renderSchedules(data); // Pass the fetched data to the rendering function
+        })
+        .catch(error => {
+            console.error('Error loading schedules:', error);
+            // Handle errors if any
+        });
+}
+
+// Function to render schedules dynamically
+function renderSchedules(schedules) {
+    const userId = sessionStorage.getItem("userId");
+    const personalTrainingContainer = document.getElementById('personal-training');
+    personalTrainingContainer.innerHTML = ''; // Clear existing content
+
+    schedules.forEach(schedule => {
+        const scheduleElement = document.createElement('div');
+
+        const addButton = document.createElement('button');
+        addButton.textContent = 'Add';
+        addButton.style.marginRight = '10px'; // Add space between button and text
+        addButton.addEventListener('click', () => {
+            // Call function to handle adding the schedule
+            addSchedule(schedule.id);
+        });
+
+        scheduleElement.textContent = `${schedule.day_of_week}, ${schedule.time_slot}`;
+
+        // Convert member_id to string for comparison
+        const memberIdString = String(schedule.member_id);
+
+        // Check conditions and apply appropriate styles
+        if (memberIdString === 'null') {
+            scheduleElement.style.color = 'green'; // If member_id is null, make it green
+        } else if (memberIdString === userId) {
+            scheduleElement.style.color = 'blue'; // If member_id matches current user id, make it yellow
+        } else {
+            scheduleElement.style.color = 'red'; // If member_id is different, make it red
+        }
+
+        scheduleElement.style.marginBottom = '40px'; // Add spacing between schedule elements
+        scheduleElement.appendChild(addButton);
+        personalTrainingContainer.appendChild(scheduleElement);
+    });
+}
+
+
+async function addSchedule(scheduleId) {
+    try {
+        const userId = sessionStorage.getItem("userId");
+        const response = await fetch(`/api/schedule/${scheduleId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId: userId }) // Assuming userId is defined elsewhere
+        });
+        if (response.ok) {
+            console.log(`Schedule with ID ${scheduleId} added successfully.`);
+            loadSchedules();
+            // Reload schedules or update UI as needed
+
+        } else {
+            console.error(`Failed to add schedule with ID ${scheduleId}.`);
+        }
+    } catch (error) {
+        console.error('Error adding schedule:', error);
+    }
+}
+
+
+
+
+// Function to add the current user to a schedule
+function addUserToSchedule(scheduleID) {
+    const currentUserID = sessionStorage.getItem('userId');
+    fetch(`/api/schedules/${scheduleID}/signup`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId: currentUserID })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            console.log('User added to schedule successfully');
+            // Reload schedules after adding the user
+            loadSchedules();
+        } else {
+            console.error('Failed to add user to schedule:', result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error adding user to schedule:', error);
+    });
+}
+
+// Load schedules when the page is loaded
+window.addEventListener('load', () => {
+    loadSchedules();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const userId = sessionStorage.getItem('userId'); // Assuming you store userId in sessionStorage
+    if (userId) {
+        fetch(`/api/groupfitness/non-registered/${userId}`)
+        .then(response => response.json())
+        .then(sessions => {
+            const tableBody = document.getElementById('non-registered-sessions').getElementsByTagName('tbody')[0];
+            sessions.forEach((session) => {
+                let row = tableBody.insertRow();
+                let cellName = row.insertCell(0);
+                let cellStart = row.insertCell(1);
+                let cellEnd = row.insertCell(2);
+                let cellRoom = row.insertCell(3);
+                let cellAction = row.insertCell(4); // Cell for the Add button
+
+                cellName.innerHTML = session.classname;
+                cellStart.innerHTML = new Date(session.starttime).toLocaleString();
+                cellEnd.innerHTML = session.endtime ? new Date(session.endtime).toLocaleString() : 'N/A';
+                cellRoom.innerHTML = session.roomid;
+
+                // Create the Add button
+                let addButton = document.createElement('button');
+                addButton.innerHTML = 'Add';
+                addButton.onclick = function() { addClass(session.groupfitnessid, userId); }; // Function to handle class addition
+                cellAction.appendChild(addButton);
+            });
+        })
+        .catch(error => console.error('Failed to fetch non-registered classes:', error));
+    }
+});
+
+// Function to handle adding a user to a class
+function addClass(groupId, userId) {
+    fetch(`/api/groupfitness/register/${groupId}/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Registered successfully!');
+            window.location.reload(); // Reload the page to update the list
+        } else {
+            alert('Failed to register. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error registering for class:', error);
+        alert('Error registering for class. Please check the console for more details.');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const userId = sessionStorage.getItem('userId'); // Assuming you store userId in sessionStorage
+    if (userId) {
+        fetch(`/api/groupfitness/registered/${userId}`)
+        .then(response => response.json())
+        .then(classes => {
+            const tableBody = document.getElementById('registered-sessions').getElementsByTagName('tbody')[0];
+            classes.forEach((cls) => {
+                let row = tableBody.insertRow();
+                row.insertCell(0).textContent = cls.classname;
+                row.insertCell(1).textContent = new Date(cls.starttime).toLocaleString();
+                row.insertCell(2).textContent = cls.endtime ? new Date(cls.endtime).toLocaleString() : 'N/A';
+                row.insertCell(3).textContent = cls.roomid;
+            });
+        })
+        .catch(error => {
+            console.error('Failed to fetch registered classes:', error);
+            // Optionally, display a user-friendly error message
+        });
+    } else {
+        console.error('User ID not found in sessionStorage');
+        // Optionally, handle the situation where userId is not available
+    }
+});
+
+</script>
+</body>
+</html>
+

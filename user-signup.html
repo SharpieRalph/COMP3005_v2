@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Gym Membership</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<style>
+        body {
+            font-family: Arial, sans-serif; /* Specifies font for the page */
+            background: #f4f4f4; /* Light grey background */
+            display: flex;
+            justify-content: center; /* Centers the content horizontally */
+            align-items: center; /* Centers the content vertically */
+            height: 100vh; /* Full viewport height */
+            margin: 0; /* Removes default margin */
+        }
+
+        .signup-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Subtle shadow */
+            width: 300px;
+        }
+
+        h2 {
+            text-align: center; /* Centers the heading */
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c; /* Green background */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #4cae4c; /* Darker green on hover */
+        }
+
+        .toggle-password {
+            float: right;
+            margin-left: -30px;
+            margin-top: -25px;
+            position: relative;
+            z-index: 2;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        #username-feedback,
+        #password-error,
+        #goal-error {
+            font-size: 12px;
+        }
+    </style>
+<body>
+<div class="signup-form">
+    <h2>Create Account</h2>
+    <!-- Updated form action to point to /api/signup instead of /submit-your-signup-form -->
+    <!-- Removed onsubmit="return validateForm()" to handle validation and submission via JavaScript -->
+    <form id="signup-form" action="/api/signup" method="post">
+
+    <div class="form-group">
+            <label for="new-username"><i class="fa fa-user"></i> Username</label>
+            <input type="text" id="new-username" name="username" required>
+            <div id="username-feedback"></div> <!-- Feedback for username availability -->
+        </div>
+        <div class="form-group">
+            <label for="new-password"><i class="fa fa-lock"></i> Password</label>
+            <input type="password" id="new-password" name="password" required>
+            <i class="fa fa-eye toggle-password" onclick="togglePasswordVisibility('new-password')" style="cursor: pointer;"></i>
+        </div>
+        <div class="form-group">
+            <label for="confirm-password"><i class="fa fa-lock"></i> Confirm Password</label>
+            <input type="password" id="confirm-password" name="confirm_password" required>
+            <i class="fa fa-eye toggle-password" onclick="togglePasswordVisibility('confirm-password')" style="cursor: pointer;"></i>
+        </div>
+        <div id="password-error" style="color: red; display: none;">Passwords must be the same.</div>
+        <div class="form-group">
+            <label for="height"><i class="fa fa-arrows-v"></i> Height (cm)</label>
+            <input type="number" id="height" name="height" required>
+        </div>
+        <div class="form-group">
+            <label for="weight"><i class="fa fa-balance-scale"></i> Weight (kg)</label>
+            <input type="number" id="weight" name="weight" required>
+        </div>
+        <div class="form-group">
+            <label for="goal1"><i class="fa fa-bullseye"></i> Fitness Goal 1</label>
+            <input type="text" id="goal1" name="goal1" required>
+        </div>
+        <div class="form-group">
+            <label for="goal2"><i class="fa fa-bullseye"></i> Fitness Goal 2</label>
+            <input type="text" id="goal2" name="goal2">
+        </div>
+        <div class="form-group">
+            <label for="goal3"><i class="fa fa-bullseye"></i> Fitness Goal 3</label>
+            <input type="text" id="goal3" name="goal3">
+        </div>
+        <div id="goal-error" style="color: red; display: none;">Please enter at least one fitness goal.</div>
+        <button type="submit">Sign Up</button>
+    </form>
+    <p>Already a member? <a href="/signin">Sign in</a></p>
+</div>
+<script>
+    document.getElementById('signup-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Clear any previous error messages
+    document.getElementById("goal-error").style.display = "none";
+    document.getElementById('password-error').style.display = 'none';
+
+    // Check if goals are filled
+    var goal1 = document.getElementById("goal1").value;
+    var goal2 = document.getElementById("goal2").value;
+    var goal3 = document.getElementById("goal3").value;
+    if (!goal1 && !goal2 && !goal3) {
+        document.getElementById("goal-error").style.display = "block";
+        return;
+    }
+
+    // Check if passwords match
+    const password = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    if (password !== confirmPassword) {
+        document.getElementById('password-error').style.display = 'block';
+        return;
+    }
+
+    var formData = new FormData(document.getElementById('signup-form'));
+
+    fetch('/api/signup', {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json(); // Parse JSON data from the response
+    }).then(data => {
+        if (data.message === 'Successful registration') {
+            window.location.href = '/signin'; // Redirect on successful signup
+        } else {
+            alert(data.message); // Display error message from server
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        alert('Failed to sign up. Please check your network connection and try again.');
+    });
+});
+
+
+
+    function togglePasswordVisibility(fieldId) {
+        var input = document.getElementById(fieldId);
+        var icon = input.nextElementSibling;
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    document.getElementById("new-username").addEventListener("input", checkUsernameAvailability);
+    function checkUsernameAvailability() {
+        var username = document.getElementById("new-username").value;
+        var feedbackElement = document.getElementById("username-feedback");
+
+        fetch('/api/check-username', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+        }).then(response => response.json())
+          .then(data => {
+              feedbackElement.textContent = data.message;
+              feedbackElement.style.color = data.message.includes('not available') ? 'red' : 'green';
+          }).catch(error => {
+              console.error('Error checking username availability:', error);
+          });
+    }
+</script>
+</body>
+</html>

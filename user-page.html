@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Membership Sign-In</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        a {
+            color: #5cb85c;
+        }
+    </style>
+</head>
+<body>
+<div class="login-form">
+    <form id="login-form" action="/submit-your-login-form" method="post">
+        <div class="form-group">
+            <label for="username"><i class="fa fa-user"></i> Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password"><i class="fa fa-lock"></i> Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Sign In</button>
+        <p>Not a member? <a href="/signup">Sign up now</a></p>
+    </form>
+</div>
+
+<script>
+    document.getElementById("login-form").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent the default form submission behavior
+
+        // Perform AJAX request to submit login form data
+        fetch("/submit-your-login-form", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value
+            })
+        })
+        .then(response => {
+
+            if (response.ok) {
+                // If login is successful, retrieve the user ID from the response
+                return response.json();
+            } else {
+                // If login fails, display an error message
+                throw new Error("Login failed. Please check your credentials and try again.");
+            }
+        })
+        .then(data => {
+            // Save the user ID in sessionStorage
+            sessionStorage.setItem("userId", data.userId);
+
+            // Redirect to the user menu
+            window.location.href = "/menu";
+        })
+        .catch(error => {
+            console.error("Error during login:", error);
+            alert(error.message);
+        });
+    });
+</script>
+</body>
+</html>
